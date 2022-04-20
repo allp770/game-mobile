@@ -1,0 +1,414 @@
+
+<!DOCTYPE html>
+<html lang="en" >
+
+<head>
+
+  <meta charset="UTF-8">
+  
+<link rel="apple-touch-icon" type="image/png" href="https://cpwebassets.codepen.io/assets/favicon/apple-touch-icon-5ae1a0698dcc2402e9712f7d01ed509a57814f994c660df9f7a952f3060705ee.png" />
+<meta name="apple-mobile-web-app-title" content="CodePen">
+
+<link rel="shortcut icon" type="image/x-icon" href="https://cdn-icons.flaticon.com/png/512/856/premium/856987.png?token=exp=1650410269~hmac=0a3dd42edf1612ad4ff926353de0c1af" />
+
+<link rel="mask-icon" type="image/x-icon" href="https://cpwebassets.codepen.io/assets/favicon/logo-pin-8f3771b1072e3c38bd662872f6b673a722f4b3ca2421637d5596661b4e2132cc.svg" color="#111" />
+
+
+  <title>Shooting mafia</title>
+  
+  
+  
+  
+<style>
+/* FUNCTIONAL CSS */
+
+* {
+	box-sizing: border-box;
+}
+
+#gameFrame {
+  margin-top: 60px;
+  margin-left: 35px;
+	height: 1400px;
+	width: 900px;
+	
+	overflow: hidden;
+	position: relative;
+	background-color: #331667;
+}
+
+#gameFrame.ennemyShooting {
+	background-color: brown;
+}		
+
+#gameFrame.playerShooting {
+	background-color: white;
+}
+
+#healthBar {
+	background-color: coral;
+	height: 60px;
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100%;
+}
+
+
+#newGame {
+	position: absolute;
+	display: block;
+	border: none;
+	padding: 1em;
+	box-shadow: none; 
+	width: 100%;
+	height: 100%;
+	display: none;
+	z-index: 2;
+}
+
+#newGame span {
+	display: none;
+}
+
+#gameFrame.playerWon .messageWon,
+#gameFrame.playerDead .messageDead,
+#gameFrame.firstGame .messageWelcome,
+.firstGame #newGame,
+.playerDead #newGame,
+.playerWon #newGame {
+	display: block;
+}
+
+.playerWon #newGame {
+	background-color: #4CAF50;
+}
+.playerDead #newGame {
+	background-color: coral;
+}
+
+.ennemy {
+	background-color: #334E4B;
+	position: absolute;
+	height: 800px;
+	width: 200px;
+	bottom: -100%;
+	transition: all .5s;
+}
+
+.ennemy.showing {
+	bottom: -10%;
+}
+
+.ennemy.shooting {
+	background-color: #2D1810;
+}
+
+.ennemy.dead {
+	transform: rotate(-90deg);
+	transform-origin: bottom left;
+	bottom: -13%;
+	background-color: white;
+	margin-left: 20%;
+}
+
+
+
+/* AESTHETIC CHOICES */
+
+body {
+	font-family: sans-serif;
+	background-color: black;
+}
+
+#gameFrame {
+	font-weight: bold;
+	cursor: crosshair;
+	user-select: none;
+	border-radius: 10px;
+	color: coral;
+	box-shadow: inset 0 -200px 50px #81a2a740, inset 0 100px 80px #11111140;	
+}
+
+#healthBar {
+	transition: width .3s;
+}
+
+#newGame {
+	background: radial-gradient(circle, rgba(15,121,96,1) 0%, rgba(56,96,134,1) 100%);
+	color: white;
+	cursor: pointer;
+	font-size: 30px;
+	letter-spacing: -.05em;
+	font-weight: bold;	
+}
+
+#newGame p {
+	font-size: 1.5em;
+	margin-top: .5em;
+	color: gold;
+}
+
+#newGame .emoji {
+	display: block;
+	font-size: 2em;
+}
+
+.ennemy {
+	border-top: 80px solid  #142221;
+	border-bottom: 400px solid  #1c3331;
+	border-radius: 30px;
+	box-shadow: 0 -1px 14px #ffffff5c, inset 0 32px 15px rgba(0, 0, 0, .3);
+}
+
+
+/* Ennemy's face and hat */
+.ennemy:before {
+	content: "°_°";
+	padding-top: .20em;
+	text-align: center;
+	width: 130%;
+	left: -15%;
+	border-top: 10px solid  #1a2d2c;
+	position: absolute;
+	font-size: 100px;
+}
+
+/* Ennemy weapon */
+.ennemy:after {
+    content: "°";
+    color: #334e4b;
+    position: absolute;
+    bottom: -50px;
+    left: -32px;
+    font-size: 80px;
+    background-color: #0e211f;
+    border-radius: 16px;
+    border-left: 6px solid  #232323;
+    border-bottom: 12px solid  #121212;
+    box-sizing: border-box;
+    line-height: .5em;
+    width: 52px;
+    text-align: center;
+    padding-top: 17px;
+    transition: all .2s;
+}
+
+.ennemy.shooting {
+	box-shadow: inset 50px 0 25px #ff7f5063;
+	color: rgba(255, 255, 255, .3);
+	border-color: #361C17;
+}
+
+.ennemy.shooting:before {
+	border-color: #361C17;			
+}
+
+.ennemy.shooting:after {
+    content: "*";
+    color: coral;
+    text-shadow: 0 0 10px coral;
+    background-color: #421e11;
+    border-color: #5C1A19;
+    transform: scale(2);
+    padding: 0;
+    font-size: 10em;
+    bottom: -60px;
+    height: 70px;
+}
+
+.ennemy.dead {
+	filter: blur(2px) brightness(.5);	
+}
+
+/* Ennemy's dead face */
+.ennemy.dead:before {
+	content: "*_*";
+}
+
+</style>
+
+  <script>
+  window.console = window.console || function(t) {};
+</script>
+
+  
+  
+  <script>
+  if (document.location.search.match(/type=embed/gi)) {
+    window.parent.postMessage("resize", "*");
+  }
+</script>
+
+
+</head>
+
+<body translate="no" >
+  <main id="gameFrame" class="firstGame" onclick="myShootingEffects()">
+
+  <div id="healthBar"></div>
+
+  <div class="ennemy" style="left: 030px;"></div>
+  <div class="ennemy" style="left: 200px;"></div>
+  <div class="ennemy" style="left: 330px;"></div>
+  <div class="ennemy" style="left: 430px;"></div>
+  <div class="ennemy" style="left: 500px;"></div>
+  <div class="ennemy" style="left: 640px;"></div>
+
+  <button onclick="newGame()" id="newGame">
+
+    <span class="messageWon">
+      <span class="emoji">👏</span> Bravo!
+    </span>
+    <span class="messageDead">
+      <span class="emoji">😵</span> Raté…
+    </span>
+    <span class="messageWelcome">
+      <span class="emoji">🤖</span> Bienvenue
+    </span>
+
+    <p>👉 Nouvelle partie</p>
+
+  </button>
+
+</main>
+    <script src="https://cpwebassets.codepen.io/assets/common/stopExecutionOnTimeout-1b93190375e9ccc259df3a57c1abc0e64599724ae30d7ea4c6877eb615f89387.js"></script>
+
+  
+      <script id="rendered-js" >
+// SOUNDS
+var myGunshot = new Audio('http://dev.pascalou.co.uk/shooter/audio/laser_sound.m4a');
+var ennemyFalling = new Audio('http://dev.pascalou.co.uk/shooter/audio/thud.m4a');
+var ennemyGunshot = new Audio('http://dev.pascalou.co.uk/shooter/audio/laser_sound.m4a');
+ennemyGunshot.volume = 0.4;
+
+var music = new Audio("");
+music.loop = true;
+
+// SOME ESSENTIAL VARIABLES
+const gameFrame = document.querySelector("#gameFrame");
+
+var myLifePoints = 100;
+
+function livingEnnemies() {
+  return document.querySelectorAll(".ennemy:not(.dead)");
+}
+
+
+// ENNEMY SHOOTS ME
+function ennemyShootsMe(ennemy) {
+  if (ennemy) {
+    ennemy.classList.add("showing");
+    setTimeout(function () {
+      if (!ennemy.classList.contains("dead")) {
+        ennemyGunshot.play();
+        ennemy.classList.add("shooting");
+        gameFrame.classList.add("ennemyShooting");
+        updateLifePoints(myLifePoints - 20);
+        setTimeout(function () {
+          ennemy.classList.remove("shooting");
+          gameFrame.classList.remove("ennemyShooting");
+          setTimeout(function () {
+            ennemy.classList.remove("showing");
+          }, 150);
+        }, 500);
+      }
+    }, 1000);
+  }
+}
+
+// ELEMENT OF SURPRISE
+function randomEnnemyShots() {
+
+  if (myLifePoints > 0) {
+
+    if (livingEnnemies()) {
+      var randomEnnemy = Math.floor(Math.random() * livingEnnemies().length);
+      var randomDelay = Math.floor(Math.random() * 2000) + 1000;
+
+      setTimeout(function () {
+        if (myLifePoints > 0) {
+          ennemyShootsMe(livingEnnemies()[randomEnnemy]);
+          randomEnnemyShots();
+        }
+      }, randomDelay);
+    }
+
+  }
+
+}
+
+
+// DAMAGE AND DEATH
+function updateLifePoints(amount) {
+  myLifePoints = amount;
+  if (myLifePoints < 1) {
+    myLifePoints = 0;
+    setTimeout(function () {
+      if (livingEnnemies().length) {
+        gameFrame.classList.add("playerDead");
+      }
+    }, 500);
+  }
+  document.getElementById("healthBar").style.width = myLifePoints + "%";
+}
+
+
+// I SHOOT THE ENNEMIES
+function iShoot(ennemy) {
+
+  /* Consequences on the ennemies */
+  ennemy.classList.remove("shooting");
+  ennemy.classList.add("dead");
+  ennemyFalling.play();
+
+  /* Victory! */
+  if (!livingEnnemies().length) {
+    setTimeout(function () {
+      gameFrame.classList.add("playerWon");
+    }, 300);
+  }
+}
+
+// VISUAL AND SOUND EFFECTS WHEN I SHOOT
+function myShootingEffects() {
+  myGunshot.play();
+  gameFrame.classList.add("playerShooting");
+  setTimeout(function () {
+    gameFrame.classList.remove("playerShooting");
+  }, 150);
+}
+
+
+// GETTING THE GAME READY
+function newGame() {
+
+  document.querySelectorAll(".ennemy").forEach(ennemy => {
+    ennemy.classList = ["ennemy"];
+  });
+
+  updateLifePoints(100);
+  gameFrame.classList = [];
+
+  setTimeout(function () {
+    randomEnnemyShots();
+  }, 3000);
+
+}
+
+
+livingEnnemies().forEach(ennemy => {
+
+  ennemy.addEventListener("click", function () {
+    iShoot(ennemy);
+  });
+
+});
+//# sourceURL=pen.js
+    </script>
+
+  
+
+</body>
+
+</html>
